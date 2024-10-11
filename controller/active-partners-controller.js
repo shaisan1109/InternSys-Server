@@ -2,7 +2,7 @@ const activePartnersController = (app, options, done) => {
     // Show (read) active partners table
     app.get('/active-partners', async () => {
         const client = await app.pg.connect();
-        const activePartnerResult = await client.query('SELECT * FROM active_partners');
+        const activePartnerResult = await client.query('SELECT * FROM public.active_partners');
 
         client.release();
 

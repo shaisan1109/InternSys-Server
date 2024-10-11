@@ -3,6 +3,7 @@ import postgres from '@fastify/postgres';
 
 // Controller imports
 import activePartnersController from './controller/active-partners-controller.js';
+import userController from "./controller/user-controller.js";
 
 // Logging is enabled for debugging purposes
 const app = Fastify({
@@ -20,7 +21,7 @@ app.register(postgres, {
 
 // Other routes
 app.register(activePartnersController, { prefix: '/api/db' });
-//app.register(studentController, { prefix: '/student' });
+app.register(userController, { prefix: '/api/db' });
 //app.register(coordController, { prefix: '/coordinator' });
 //app.register(linkageController, { prefix: '/linkage-officer' });
 //app.register(hteController, { prefix: '/hte' });
