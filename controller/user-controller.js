@@ -1,6 +1,6 @@
 const userController = (app, options, done) => {
     // GET all users
-    app.get('/users', async () => {
+    app.get('/get-all-users', async () => {
         const client = await app.pg.connect();
         const usersResult = await client.query('SELECT * FROM public.user');
 
@@ -10,7 +10,7 @@ const userController = (app, options, done) => {
     });
 
     // GET one user with username
-    app.post('/user',  async (request, reply) => {
+    app.post('/get-user-by-email',  async (request, reply) => {
         // Connect to db
         const client = await app.pg.connect();
 

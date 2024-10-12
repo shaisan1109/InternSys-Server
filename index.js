@@ -20,8 +20,8 @@ app.register(postgres, {
 });
 
 // Other routes
-app.register(activePartnersController, { prefix: '/api/db' });
-app.register(userController, { prefix: '/api/db' });
+app.register(activePartnersController, { prefix: '/api/active-partners' });
+app.register(userController, { prefix: '/api/user' });
 //app.register(coordController, { prefix: '/coordinator' });
 //app.register(linkageController, { prefix: '/linkage-officer' });
 //app.register(hteController, { prefix: '/hte' });
