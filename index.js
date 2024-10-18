@@ -19,7 +19,7 @@ app.register(postgres, {
     password: '1234'
 });
 
-// Other routes
+// Postgres routes
 app.register(activePartnersController, { prefix: '/api/active-partners' });
 app.register(userController, { prefix: '/api/user' });
 //app.register(coordController, { prefix: '/coordinator' });
