@@ -1,9 +1,15 @@
 import Fastify from "fastify";
+
+// Import Postgres
 import postgres from '@fastify/postgres';
 
-// Controller imports
-import activePartnersController from './controller/active-partners-controller.js';
-import userController from "./controller/user-controller.js";
+// Postgres controller imports
+import activePartnersController from './controller/postgres/active-partners-controller.js';
+import userController from "./controller/postgres/user-controller.js";
+
+// Mayan controller imports
+import templatesController from "./controller/mayan/templates-controller.js";
+import typesController from "./controller/mayan/types-controller.js";
 
 // Logging is enabled for debugging purposes
 const app = Fastify({
@@ -25,6 +31,10 @@ app.register(userController, { prefix: '/api/user' });
 //app.register(coordController, { prefix: '/coordinator' });
 //app.register(linkageController, { prefix: '/linkage-officer' });
 //app.register(hteController, { prefix: '/hte' });
+
+// Mayan routes
+app.register(templatesController, { prefix: '/api/mayan/templates' });
+app.register(typesController, { prefix: '/api/mayan' });
 
 // Listen for main server port
 app.listen({ port: 8080 }, err => {
