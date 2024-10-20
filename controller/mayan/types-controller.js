@@ -1,4 +1,4 @@
-const typesController = (app, options, done) => {
+const mayanGetController = (app, options, done) => {
     // GET list of documents in a cabinet
     app.get('/cabinet/:id', async (request, reply) => {
         const response = await fetch(`http://ccscloud.dlsu.edu.ph:12707/api/v4/cabinets/${request.params.id}/documents/?_fields_only=id,label`,
@@ -44,4 +44,4 @@ const typesController = (app, options, done) => {
     done();
 }
 
-export default typesController;
+export default mayanGetController;

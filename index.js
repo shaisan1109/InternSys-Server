@@ -9,7 +9,7 @@ import userController from "./controller/postgres/user-controller.js";
 
 // Mayan controller imports
 import templatesController from "./controller/mayan/templates-controller.js";
-import typesController from "./controller/mayan/types-controller.js";
+import mayanGetController from "./controller/mayan/types-controller.js";
 
 // Logging is enabled for debugging purposes
 const app = Fastify({
@@ -34,10 +34,9 @@ app.register(userController, { prefix: '/api/user' });
 
 // Mayan routes
 app.register(templatesController, { prefix: '/api/mayan/templates' });
-app.register(typesController, { prefix: '/api/mayan' });
+app.register(mayanGetController, { prefix: '/api/mayan' });
 
 // Listen for main server port
 app.listen({ port: 8080 }, err => {
     if (err) throw err
-    console.log(`Server listening on ${app.server.address().port}`)
 });
