@@ -8,8 +8,7 @@ import activePartnersController from './controller/postgres/active-partners-cont
 import userController from "./controller/postgres/user-controller.js";
 
 // Mayan controller imports
-import templatesController from "./controller/mayan/templates-controller.js";
-import mayanGetController from "./controller/mayan/types-controller.js";
+import mayanGetController from "./controller/mayan/get-controller.js";
 
 // Logging is enabled for debugging purposes
 const app = Fastify({
@@ -28,12 +27,8 @@ app.register(postgres, {
 // Postgres routes
 app.register(activePartnersController, { prefix: '/api/active-partners' });
 app.register(userController, { prefix: '/api/user' });
-//app.register(coordController, { prefix: '/coordinator' });
-//app.register(linkageController, { prefix: '/linkage-officer' });
-//app.register(hteController, { prefix: '/hte' });
 
 // Mayan routes
-app.register(templatesController, { prefix: '/api/mayan/templates' });
 app.register(mayanGetController, { prefix: '/api/mayan' });
 
 // Listen for main server port
