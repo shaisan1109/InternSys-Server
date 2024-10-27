@@ -26,7 +26,7 @@ app.register(postgres, {
 
 // Postgres routes
 app.register(activePartnersController, { prefix: '/api/active-partners' });
-app.register(userController, { prefix: '/api/user' });
+app.register(userController, { prefix: '/api/users' });
 
 // Mayan routes
 app.register(mayanGetController, { prefix: '/api/mayan' });

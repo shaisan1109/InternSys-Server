@@ -1,3 +1,5 @@
+import fs from "fs";
+
 const mayanGetController = (app, options, done) => {
     // GET list of documents in a cabinet
     app.get('/cabinet/:id', async (request, reply) => {
@@ -29,7 +31,8 @@ const mayanGetController = (app, options, done) => {
 
     // GET all documents
     app.get('/documents', async (request, reply) => {
-        const response = await fetch('http://ccscloud.dlsu.edu.ph:12707/api/v4/documents/',
+        // ?_fields_only=id,label,datetime_created,document_type__label
+        const response = await fetch('http://ccscloud.dlsu.edu.ph:12707/api/v4/documents/?_fields_only=id,label,datetime_created,document_type__label',
             {
                 method: 'GET',
                 headers: {
@@ -55,6 +58,20 @@ const mayanGetController = (app, options, done) => {
         return reply.send(json);
     });
 
+    // GET all info on a document
+    app.get('/document/:id', async (request, reply) => {
+        const response = await fetch(`http://ccscloud.dlsu.edu.ph:12707/api/v4/documents/${request.params.id}/?_fields_only=document_type__id,document_type__label,file_latest__filename`,
+            {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Token f03a27ed9a6e0f92e6b3fd60a9b25a6c64173b32'
+                }
+            }
+        );
+        const json = await response.json();
+        return reply.send(json);
+    });
+
     // GET all tags on a document
     app.get('/document/:id/tags', async (request, reply) => {
         const response = await fetch(`http://ccscloud.dlsu.edu.ph:12707/api/v4/documents/${request.params.id}/tags/`,
@@ -67,6 +84,27 @@ const mayanGetController = (app, options, done) => {
         );
         const json = await response.json();
         return reply.send(json);
+    });
+
+    // GET all page images of a document
+    app.get('/document/:id/pages', async (request, reply) => {
+        const response = await fetch(`http://ccscloud.dlsu.edu.ph:12707/api/v4/documents/${request.params.id}/files/${request.params.id}/pages/?_fields_only=image_url`,
+            {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Token f03a27ed9a6e0f92e6b3fd60a9b25a6c64173b32'
+                }
+            }
+        );
+        const json = await response.json();
+        return reply.send(json);
+    });
+
+    // GET page image
+    app.get('/document/:id/page/:pageid', async (request, reply) => {
+        const buffer = fs.readFileSync(`http://ccscloud.dlsu.edu.ph:12707/api/v4/documents/${request.params.id}/files/${request.params.id}/pages/${request.params.pageid}/image`);
+        reply.type('image/png'); // if you don't set the content, the image would be downloaded by browser instead of viewed
+        reply.send(buffer);
     });
 
     done();
