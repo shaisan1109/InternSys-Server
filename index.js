@@ -10,6 +10,7 @@ import userController from "./controller/postgres/user-controller.js";
 // Mayan controller imports
 import mayanGetController from "./controller/mayan/get-controller.js";
 import ocsController from "./controller/postgres/ocs-controller.js";
+import coordController from "./controller/postgres/coordinator-controller.js";
 
 // Logging is enabled for debugging purposes
 const app = Fastify({
@@ -29,6 +30,7 @@ app.register(postgres, {
 app.register(activePartnersController, { prefix: '/api/db/active-partners' });
 app.register(userController, { prefix: '/api/db/users' });
 app.register(ocsController, { prefix: '/api/db/ocs' });
+app.register(coordController, { prefix: '/api/db/coordinator' });
 
 // Mayan routes
 app.register(mayanGetController, { prefix: '/api/mayan' });
