@@ -23,6 +23,18 @@ const coordController = (app, options, done) => {
         return reqsResult.rows[0].count;
     });
 
+    // GET endorsement requests by student (for student history)
+    app.get("/endorsement-requests/:studentid", async (request) => {
+        const { studentid } = request.params;
+
+        const client = await app.pg.connect();
+        const reqsResult = await client.query(`SELECT * FROM public.endorsement_requests WHERE student_id='${studentid}'`);
+
+        client.release();
+
+        return reqsResult.rows;
+    });
+
     done();
 }
 
