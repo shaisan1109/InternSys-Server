@@ -1,6 +1,6 @@
-const coordController = (app, options, done) => {
+const endorsementController = (app, options, done) => {
     // GET requests by status
-    app.get("/endorsement-requests", async (request) => {
+    app.get("/", async (request) => {
         const { status } = request.query;
 
         const client = await app.pg.connect();
@@ -12,7 +12,7 @@ const coordController = (app, options, done) => {
     });
 
     // GET number of requests with status
-    app.get("/endorsement-requests/count", async (request) => {
+    app.get("/count", async (request) => {
         const { status } = request.query;
 
         const client = await app.pg.connect();
@@ -20,11 +20,11 @@ const coordController = (app, options, done) => {
 
         client.release();
 
-        return reqsResult.rows[0].count;
+        return Number(reqsResult.rows[0].count);
     });
 
     // GET endorsement requests by student (for student history)
-    app.get("/endorsement-requests/:studentid", async (request) => {
+    app.get("/:studentid", async (request) => {
         const { studentid } = request.params;
 
         const client = await app.pg.connect();
@@ -38,4 +38,4 @@ const coordController = (app, options, done) => {
     done();
 }
 
-export default coordController;
+export default endorsementController;
