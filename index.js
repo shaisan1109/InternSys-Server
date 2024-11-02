@@ -10,8 +10,7 @@ import userController from "./controller/postgres/user-controller.js";
 // Mayan controller imports
 import mayanGetController from "./controller/mayan/get-controller.js";
 import ocsController from "./controller/postgres/ocs-controller.js";
-import coordController from "./controller/postgres/coordinator-controller.js";
-import endorsementController from "./controller/postgres/coordinator-controller.js";
+import endorsementController from "./controller/postgres/endorsement-controller.js";
 
 // Logging is enabled for debugging purposes
 const app = Fastify({
