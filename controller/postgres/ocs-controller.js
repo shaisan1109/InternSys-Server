@@ -22,7 +22,7 @@ const ocsController = (app, options, done) => {
         });
     });
 
-    // UPDATE a job website
+    // UPDATE a job website (working)
     app.patch("/job-website/update/:id", async (request) => {
         const { id } = request.params;
         const { title, desc, link } = request.body;
@@ -37,14 +37,15 @@ const ocsController = (app, options, done) => {
         });
     });
 
-    // DELETE a job website
+    // DELETE a job website (working)
     app.delete("/job-website/delete/:id", async (request) => {
         const { id } = request.params;
+        const idNumber = Number(id);
 
         return app.pg.transact(async (client) => {
             const deleteLink = await client.query(`
                 DELETE FROM public.job_websites
-                WHERE websiteid = ${id}
+                WHERE websiteid = ${idNumber}
             `);
             return deleteLink;
         });

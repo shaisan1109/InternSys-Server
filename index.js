@@ -30,7 +30,7 @@ app.register(postgres, {
 app.register(activePartnersController, { prefix: '/api/db/active-partners' });
 app.register(userController, { prefix: '/api/db/users' });
 app.register(ocsController, { prefix: '/api/db/ocs' });
-app.register(endorsementController, { prefix: '/api/db/endorsement-requests' });
+app.register(endorsementController, { prefix: '/api/db' });
 
 // Mayan routes
 app.register(mayanGetController, { prefix: '/api/mayan' });
