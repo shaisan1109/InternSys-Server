@@ -35,6 +35,18 @@ const endorsementController = (app, options, done) => {
         return reqsResult.rows;
     });
 
+    // GET endorsement request with id
+    app.get("/endorsement-request/:id", async (request) => {
+        const { id } = request.params;
+
+        const client = await app.pg.connect();
+        const reqsResult = await client.query(`SELECT * FROM public.endorsement_requests WHERE request_id=${id}`);
+
+        client.release();
+
+        return reqsResult.rows;
+    });
+
     // CREATE an HTE endorsement request
     app.post("/endorsement-request/create/hte", async (request) => {
         const {
