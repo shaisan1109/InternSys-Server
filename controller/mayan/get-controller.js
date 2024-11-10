@@ -111,7 +111,7 @@ const mayanGetController = (app, options, done) => {
                 }
             }
         );
-        const file = await response;
+        const file = response;
         return reply.send(file);
     });
 
