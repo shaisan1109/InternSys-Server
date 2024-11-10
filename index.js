@@ -6,11 +6,12 @@ import postgres from '@fastify/postgres';
 // Postgres controller imports
 import activePartnersController from './controller/postgres/active-partners-controller.js';
 import userController from "./controller/postgres/user-controller.js";
+import ocsController from "./controller/postgres/ocs-controller.js";
+import endorsementController from "./controller/postgres/endorsement-controller.js";
 
 // Mayan controller imports
 import mayanGetController from "./controller/mayan/get-controller.js";
-import ocsController from "./controller/postgres/ocs-controller.js";
-import endorsementController from "./controller/postgres/endorsement-controller.js";
+import mayanEditController from "./controller/mayan/edit-controller.js";
 
 // Logging is enabled for debugging purposes
 const app = Fastify({
@@ -34,6 +35,7 @@ app.register(endorsementController, { prefix: '/api/db' });
 
 // Mayan routes
 app.register(mayanGetController, { prefix: '/api/mayan' });
+app.register(mayanEditController, { prefix: '/api/mayan' });
 
 // Listen for main server port
 app.listen({ port: 8080 }, err => {

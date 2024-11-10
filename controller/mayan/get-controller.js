@@ -3,7 +3,7 @@ import fs from "fs";
 const mayanGetController = (app, options, done) => {
     // GET list of documents in a cabinet
     app.get('/cabinet/:id', async (request, reply) => {
-        const response = await fetch(`http://ccscloud.dlsu.edu.ph:12707/api/v4/cabinets/${request.params.id}/documents/?_fields_only=id,label`,
+        const response = await fetch(`http://ccscloud.dlsu.edu.ph:12707/api/v4/cabinets/${request.params.id}/documents/?_fields_only=id,label,datetime_created`,
             {
                 method: 'GET',
                 headers: {
