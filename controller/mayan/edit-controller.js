@@ -39,7 +39,7 @@ const mayanEditController = (app, options, done) => {
                 }
             }
         );
-        const res = response.json();
+        const res = response;
         return reply.send(res);
     });
 

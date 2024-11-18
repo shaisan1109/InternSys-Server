@@ -8,11 +8,12 @@ import activePartnersController from './controller/postgres/active-partners-cont
 import userController from "./controller/postgres/user-controller.js";
 import ocsController from "./controller/postgres/ocs-controller.js";
 import endorsementController from "./controller/postgres/endorsement-controller.js";
+import deadlineController from "./controller/postgres/deadline-controller.js";
 
 // Mayan controller imports
 import mayanGetController from "./controller/mayan/get-controller.js";
 import mayanEditController from "./controller/mayan/edit-controller.js";
-import deadlineController from "./controller/postgres/deadline-controller.js";
+import moaController from "./controller/postgres/moa-controller.js";
 
 // Logging is enabled for debugging purposes
 const app = Fastify({
@@ -34,6 +35,7 @@ app.register(userController, { prefix: '/api/db/users' });
 app.register(ocsController, { prefix: '/api/db/ocs' });
 app.register(endorsementController, { prefix: '/api/db' });
 app.register(deadlineController, { prefix: '/api/db/deadlines' });
+app.register(moaController, { prefix: '/api/db/moa' })
 
 // Mayan routes
 app.register(mayanGetController, { prefix: '/api/mayan' });
