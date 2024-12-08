@@ -3,7 +3,21 @@ import fs from "fs";
 const mayanGetController = (app, options, done) => {
     // GET list of documents in a cabinet
     app.get('/cabinet/:id', async (request, reply) => {
-        const response = await fetch(`http://ccscloud.dlsu.edu.ph:12707/api/v4/cabinets/${request.params.id}/documents/?_fields_only=id,label,datetime_created`,
+        const response = await fetch(`http://ccscloud.dlsu.edu.ph:12707/api/v4/cabinets/${request.params.id}/documents/?_fields_only=id,label,datetime_created,file_latest__pages_first__image_url`,
+            {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Token f03a27ed9a6e0f92e6b3fd60a9b25a6c64173b32'
+                }
+            }
+        );
+        const json = await response.json();
+        return reply.send(json);
+    });
+
+    // GET count of documents in a cabinet
+    app.get('/cabinet/:id/count', async (request, reply) => {
+        const response = await fetch(`http://ccscloud.dlsu.edu.ph:12707/api/v4/cabinets/${request.params.id}/documents/?_fields_only=id`,
             {
                 method: 'GET',
                 headers: {
@@ -32,7 +46,7 @@ const mayanGetController = (app, options, done) => {
     // GET all documents
     app.get('/documents', async (request, reply) => {
         // ?_fields_only=id,label,datetime_created,document_type__label
-        const response = await fetch('http://ccscloud.dlsu.edu.ph:12707/api/v4/documents/?_fields_only=id,label,datetime_created,document_type__label',
+        const response = await fetch('http://ccscloud.dlsu.edu.ph:12707/api/v4/documents/?_fields_only=id,label,datetime_created,document_type__label,file_latest__id',
             {
                 method: 'GET',
                 headers: {
@@ -121,6 +135,21 @@ const mayanGetController = (app, options, done) => {
 
         reply.type('image/png'); // if you don't set the content, the image would be downloaded by browser instead of viewed
         reply.send(buffer);
+    });
+
+    // GET workflow instance of document
+    app.get('/document/:id/workflow-instance', async (request, reply) => {
+        const response = await fetch(`http://ccscloud.dlsu.edu.ph:12707/api/v4/documents/${request.params.id}/workflow_instances/`,
+            {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Token f03a27ed9a6e0f92e6b3fd60a9b25a6c64173b32'
+                }
+            }
+        );
+
+        const json = await response.json();
+        return reply.send(json);
     });
 
     done();

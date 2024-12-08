@@ -1,34 +1,71 @@
 const activePartnersController = (app, options, done) => {
-    // Show (read) active partners table
-    app.get('/get-all-active-partners', async () => {
+    // Get contact by ID
+    app.get('/active-partner/:id/contact', async (request) => {
         const client = await app.pg.connect();
-        const activePartnerResult = await client.query('SELECT * FROM public.active_partners');
+        const activePartnerResult = await client.query(`SELECT * FROM public.company_contact WHERE company_id=${request.params.id}`);
 
         client.release();
 
         return activePartnerResult.rows;
     });
 
-    /* POSTGRES QUERY EXAMPLE
-
-    app.get('/calc', async () => {
+    // GET all contacts
+    app.get('/active-partners/contact', async (request) => {
         const client = await app.pg.connect();
-        const sumResult = await client.query<{ sum: number }>('SELECT 2 + 2 as sum');
+        const activePartnerResult = await client.query(`SELECT * FROM public.company_contact`);
 
         client.release();
 
-        return {
-            sum: sumResult.rows,
-        };
+        return activePartnerResult.rows;
     });
 
-    */
+    // Create contact
+    app.post("/active-partner/contact/create", async (request) => {
+        const {
+            companyId,
+            name,
+            phone,
+            email,
+            website
+        } = request.body;
+        
+        return app.pg.transact(async (client) => {
+            const createLink = await client.query(`
+                INSERT INTO public.company_contact (company_id, contact_name, contact_telephone, contact_email, contact_website)
+                VALUES ('${companyId}', '${name}', '${phone}', '${email}', '${website}')
+            `);
+            return createLink;
+        });
+    });
 
-    // Create active partner entry
+    // Update contact
+    app.patch("/active-partner/:id/contact", async (request) => {
+        const { id } = request.params;
+        const { name, phone, email, website } = request.body;
+        
+        return app.pg.transact(async (client) => {
+            const updateLink = await client.query(`
+                UPDATE public.company_contact
+                SET contact_name = '${name}', contact_telephone = '${phone}', contact_email = '${email}', contact_website = '${website}'
+                WHERE contact_id = ${id}
+            `);
+            return updateLink;
+        });
+    });
 
-    // Update active partner entry
+    // Delete contact
+    app.delete("/active-partner/:id/contact", async (request) => {
+        const { id } = request.params;
+        const idNumber = Number(id);
 
-    // Delete active partner entry
+        return app.pg.transact(async (client) => {
+            const deleteLink = await client.query(`
+                DELETE FROM public.company_contact
+                WHERE contact_id = ${idNumber}
+            `);
+            return deleteLink;
+        });
+    });
 
     done();
 };

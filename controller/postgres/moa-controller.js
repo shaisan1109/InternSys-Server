@@ -45,72 +45,17 @@ const moaController = (app, options, done) => {
         });
     });
 
-    // Retrieve doc entries for Coordinator MOA queue
-    app.get("/queue/coordinator", async (request) => {
+    // GET joint_form_id of a document
+    app.get("/:id/joint-form", async (request) => {
+        const { id } = request.params;
+
         const client = await app.pg.connect();
-        const docsResult = await client.query(`SELECT * FROM public.moa_forms WHERE joint_form_id IS NULL AND doc_type_id IN (9, 10)`);
+        const reqsResult = await client.query(`SELECT joint_form_id FROM public.moa_forms WHERE doc_id='${id}'`);
 
         client.release();
 
-        return docsResult.rows;
-    });
-
-    // Retrieve doc entries for OCS MOA queue
-    app.get("/queue/ocs", async (request) => {
-        const client = await app.pg.connect();
-        const docsResult = await client.query(`SELECT * FROM public.moa_forms WHERE joint_form_id IS NULL AND doc_type_id = 8`);
-
-        client.release();
-
-        return docsResult.rows;
-    });
-
-    // Retrieve doc entries for OULC unread queue
-    app.get("/queue/oulc/unread", async (request) => {
-        const client = await app.pg.connect();
-        const docsResult = await client.query(`SELECT * FROM public.moa_forms WHERE joint_form_id IS NOT NULL AND oulc_review IS NOT TRUE`);
-
-        client.release();
-
-        return docsResult.rows;
-    });
-
-    // Retrieve doc entries for OULC current review queue
-    app.get("/queue/oulc/current", async (request) => {
-        const client = await app.pg.connect();
-        const docsResult = await client.query(`SELECT * FROM public.moa_forms WHERE oulc_review IS TRUE AND oulc_cleared IS NOT TRUE`);
-
-        client.release();
-
-        return docsResult.rows;
-    });
-
-    // Set document to current review list
-    app.patch("/set/to-review", async (request) => {
-        const { docId } = request.body;
-        
-        return app.pg.transact(async (client) => {
-            const updateRequest = await client.query(`
-                UPDATE public.moa_forms
-                SET oulc_review = true
-                WHERE doc_id = ${docId}
-            `);
-            return updateRequest;
-        });
-    });
-
-    // Declare document as cleared
-    app.patch("/set/cleared", async (request) => {
-        const { docId } = request.body;
-        
-        return app.pg.transact(async (client) => {
-            const updateRequest = await client.query(`
-                UPDATE public.moa_forms
-                SET oulc_cleared = true
-                WHERE doc_id = ${docId}
-            `);
-            return updateRequest;
-        });
+        // Returns a number
+        return reqsResult.rows[0].joint_form_id;
     });
 
     done();
