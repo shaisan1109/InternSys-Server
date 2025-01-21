@@ -3,7 +3,7 @@ import fs from "fs";
 const mayanGetController = (app, options, done) => {
     // GET list of documents in a cabinet
     app.get('/cabinet/:id', async (request, reply) => {
-        const response = await fetch(`http://ccscloud.dlsu.edu.ph:12707/api/v4/cabinets/${request.params.id}/documents/?_fields_only=id,label,datetime_created,file_latest__pages_first__image_url`,
+        const response = await fetch(`http://ccscloud.dlsu.edu.ph:12707/api/v4/cabinets/${request.params.id}/documents/?_fields_only=id,label,datetime_created,file_latest__pages_first__image_url,file_latest__id`,
             {
                 method: 'GET',
                 headers: {
@@ -75,7 +75,7 @@ const mayanGetController = (app, options, done) => {
 
     // GET one document and its info
     app.get('/document/:id/info', async (request, reply) => {
-        const response = await fetch(`http://ccscloud.dlsu.edu.ph:12707/api/v4/documents/${request.params.id}/?_fields_only=document_type__id,document_type__label,file_latest__filename`,
+        const response = await fetch(`http://ccscloud.dlsu.edu.ph:12707/api/v4/documents/${request.params.id}/?_fields_only=document_type__id,document_type__label,file_latest__filename,file_latest__id`,
             {
                 method: 'GET',
                 headers: {
@@ -104,6 +104,20 @@ const mayanGetController = (app, options, done) => {
     // GET all page images of a document
     app.get('/document/:id/pages', async (request, reply) => {
         const response = await fetch(`http://ccscloud.dlsu.edu.ph:12707/api/v4/documents/${request.params.id}/files/${request.params.id}/pages/?_fields_only=image_url`,
+            {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Token f03a27ed9a6e0f92e6b3fd60a9b25a6c64173b32'
+                }
+            }
+        );
+        const json = await response.json();
+        return reply.send(json);
+    });
+
+    // GET all page images of a document's *latest file*
+    app.get('/document/:id/:latestFile/pages', async (request, reply) => {
+        const response = await fetch(`http://ccscloud.dlsu.edu.ph:12707/api/v4/documents/${request.params.id}/files/${request.params.latestFile}/pages/?_fields_only=image_url`,
             {
                 method: 'GET',
                 headers: {

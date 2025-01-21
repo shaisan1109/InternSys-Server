@@ -16,6 +16,7 @@ import mayanGetController from "./controller/mayan/get-controller.js";
 import mayanEditController from "./controller/mayan/edit-controller.js";
 import projectController from "./controller/postgres/project-controller.js";
 import cisTpController from "./controller/postgres/cis-tp-controller.js";
+import notificationsController from "./controller/postgres/notifications-controller.js";
 
 // Logging is enabled for debugging purposes
 const app = Fastify({
@@ -40,6 +41,7 @@ app.register(deadlineController, { prefix: '/api/db/deadlines' });
 app.register(moaController, { prefix: '/api/db/moa' });
 app.register(projectController, { prefix: '/api/db' });
 app.register(cisTpController, { prefix: '/api/db/cis-tp' });
+app.register(notificationsController, { prefix: '/api/db' });
 
 // Mayan routes
 app.register(mayanGetController, { prefix: '/api/mayan' });

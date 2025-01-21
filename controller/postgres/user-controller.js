@@ -50,6 +50,21 @@ const userController = (app, options, done) => {
         return usersResult.rows;
     });
 
+    // GET all UNDEPLOYED students
+    app.get('/undeployed-students', async (request) => {
+        const client = await app.pg.connect();
+        const usersResult = await client.query(
+            `SELECT u.dlsuid, u.lastname, u.firstname, u.middlename
+            FROM public.user u
+            INNER JOIN public.student_info s ON u.dlsuid=s.studentid
+            WHERE u.roleid = 1 AND s.deployed=false`
+        );
+
+        client.release();
+
+        return usersResult.rows;
+    });
+
     done();
 }
 
