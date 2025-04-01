@@ -4,7 +4,11 @@ const endorsementController = (app, options, done) => {
         const { status } = request.query;
 
         const client = await app.pg.connect();
-        const reqsResult = await client.query(`SELECT * FROM public.endorsement_requests WHERE status='${status}'`);
+        const reqsResult = await client.query(` SELECT er.*, u.email AS student_email
+                                                FROM public.endorsement_requests er
+                                                LEFT JOIN public.user u ON er.student_id = u.dlsuid
+                                                WHERE er.status = '${status}'                                                
+                                                `);
 
         client.release();
 
@@ -29,6 +33,7 @@ const endorsementController = (app, options, done) => {
 
         const client = await app.pg.connect();
         const reqsResult = await client.query(`SELECT * FROM public.endorsement_requests WHERE student_id='${studentid}'`);
+        
 
         client.release();
 
@@ -40,8 +45,12 @@ const endorsementController = (app, options, done) => {
         const { id } = request.params;
 
         const client = await app.pg.connect();
-        const reqsResult = await client.query(`SELECT * FROM public.endorsement_requests WHERE request_id=${id}`);
-
+        // const reqsResult = await client.query(`SELECT * FROM public.endorsement_requests WHERE request_id=${id}`);
+        const reqsResult = await client.query(` SELECT er.*, u.email AS student_email
+                                                FROM public.endorsement_requests er
+                                                LEFT JOIN public.user u ON er.student_id = u.dlsuid
+                                                WHERE request_id=${id}                                                
+                                                `);
         client.release();
 
         return reqsResult.rows;

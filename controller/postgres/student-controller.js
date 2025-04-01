@@ -16,8 +16,12 @@ app.get('/student-info/:id', async (request, reply) => {
                 s.deploymentstart,
                 s.deploymentend,
                 p.companyname,
+                p.address,          
+                p.lineofbusiness, 
                 a.firstname || ' ' || a.lastname AS adviser,
-                hte.firstname || ' ' || hte.lastname AS hte_supervisor
+                hte.firstname || ' ' || hte.lastname AS hte_supervisor,
+                s.grade_lo,
+                s.grade_company
             FROM student_info s
             JOIN "user" u ON s.studentid = u.dlsuid
             LEFT JOIN active_partners p ON s.companyid = p.companyid
@@ -33,8 +37,7 @@ app.get('/student-info/:id', async (request, reply) => {
             return reply.status(404).send({ error: 'Student not found' });
         }
 
-        return reply.status(200).send(rows[0]); // ✅ Return student details
-
+        return reply.status(200).send(rows[0]); 
     } catch (error) {
         console.error('❌ Error fetching student info:', error);
         return reply.status(500).send({ error: 'Failed to fetch student details' });
@@ -57,7 +60,9 @@ app.get('/student-reports/:studentId', async (request, reply) => {
                 s.deploymentend, 
                 p.companyname, 
                 a.firstname || ' ' || a.lastname AS adviser,
-                h.firstname || ' ' || h.lastname AS hte_supervisor
+                h.firstname || ' ' || h.lastname AS hte_supervisor,
+                s.grade_lo,
+                s.grade_company
             FROM student_info s
             JOIN "user" u ON s.studentid = u.dlsuid
             LEFT JOIN active_partners p ON s.companyid = p.companyid

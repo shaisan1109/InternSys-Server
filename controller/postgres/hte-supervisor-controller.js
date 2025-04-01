@@ -4,10 +4,10 @@ const HteSupervisorController = (app, options, done) => {
             const { hteSupervisorId } = request.params;
     
             const query = `
-                SELECT u.dlsuid, u.firstname, u.middlename, u.lastname, s.studentid
+                SELECT u.dlsuid, u.firstname, u.middlename, u.lastname, s.studentid, s.grade_company
                 FROM student_info s
                 JOIN "user" u ON s.studentid = u.dlsuid
-                WHERE s.hte_supervisor_id = $1
+                WHERE s.hte_supervisor_id = $1 AND s.deployed = true
             `;
     
             const { rows } = await app.pg.query(query, [hteSupervisorId]);
@@ -22,6 +22,7 @@ const HteSupervisorController = (app, options, done) => {
             return reply.status(500).send({ error: "Failed to retrieve students." });
         }
     });
+    
     
     app.get('/student-reports/:studentId', async (request, reply) => {
         try {
@@ -91,13 +92,25 @@ const HteSupervisorController = (app, options, done) => {
             return reply.status(500).send({ error: "Failed to update report status." });
         }
     });
-
-
     
-
-
+    app.put('/submit-grades', async (request, reply) => {
+        try {
+            const { students } = request.body;
+            
+            for (const student of students) {
+                await app.pg.query(`
+                    UPDATE student_info
+                    SET grade_company = $1
+                    WHERE studentid = $2
+                `, [student.grade_company, student.studentid]);
+            }
     
-
+            return reply.status(200).send({ message: "Grades submitted successfully!" });
+        } catch (error) {
+            console.error("❌ Error submitting grades:", error);
+            return reply.status(500).send({ error: "Failed to submit grades." });
+        }
+    });
 
         done();
     };
