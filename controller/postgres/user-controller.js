@@ -7,9 +7,13 @@ const userController = (app, options, done) => {
     app.get('/get-all-users', async () => {
         const client = await app.pg.connect();
         const usersResult = await client.query(`
-            SELECT u.systemid, u.dlsuid, u.email, u.lastname, u.firstname, u.middlename, ur.rolename 
+            SELECT u.systemid, u.dlsuid, u.email, u.lastname, u.firstname, u.middlename, 
+                ur.rolename, u.roleid, u.password, u.linkageset, 
+                lo.position, lo.rank, s.deployed 
             FROM public.user u
-            INNER JOIN public.user_roles ur ON u.roleid=ur.roleid
+            LEFT JOIN public.lo_info lo ON u.dlsuid = lo.dlsuid
+            LEFT JOIN public.student_info s ON u.dlsuid = s.studentid
+            INNER JOIN public.user_roles ur ON u.roleid = ur.roleid;
         `);
 
         client.release();
@@ -93,7 +97,7 @@ const userController = (app, options, done) => {
             if (roleid === 1) {
                 const studentQuery = `
                     INSERT INTO public.student_info (studentid, deployed, workhours, companyid, deploymentstart, deploymentend, linkageofficerid, currentsection, degree, hte_supervisor_id, grade_lo, grade_company)
-                    VALUES ($1, FALSE, 486, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+                    VALUES ($1, TRUE, 486, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
                 `;
                 await client.query(studentQuery, [dlsuid]);
             }
@@ -207,12 +211,17 @@ const userController = (app, options, done) => {
                 return reply.status(404).send({ error: "User not found." });
             }
     
-            // 🔹 If role is Linkage Officer, update `lo_info`
+            // 🔹 If role is Linkage Officer, upsert `lo_info`
             if (roleid === 3) {
-                const loUpdateQuery = `UPDATE public.lo_info SET position = $1, rank = $2 WHERE dlsuid = $3;`;
-                await client.query(loUpdateQuery, [position, rank, dlsuid]);
+                const loUpsertQuery = `
+                    INSERT INTO public.lo_info (dlsuid, position, rank)
+                    VALUES ($1, $2, $3)
+                    ON CONFLICT (dlsuid) DO UPDATE
+                    SET position = EXCLUDED.position, rank = EXCLUDED.rank;
+                `;
+                await client.query(loUpsertQuery, [dlsuid, position, rank]);
             }
-    
+
             await client.query('COMMIT'); // Commit Transaction
     
             return reply.status(200).send({ message: "User updated successfully!" });

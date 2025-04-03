@@ -46,7 +46,8 @@ app.register(cors, {
 // Register the PostgreSQL plugin to connect to the database
 app.register(postgres, {
     host: 'localhost',
-    port: 5432,
+    //port: 5432,
+    port: 31603,
     database: 'dlsu_internsys',
     user: 'intersys_user',
     password: 'DLSU1234!'
