@@ -37,7 +37,10 @@ const app = Fastify({
 
 app.register(cors, {
     // origin: "http://localhost:4200", // Allow only frontend requests
-    origin: 'http://ccscloud.dlsu.edu.ph:31602',
+   origin: [
+        "http://localhost:4200",    // Angular dev server
+        "http://ccscloud.dlsu.edu.ph:31602"  // Production domain
+    ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true

@@ -281,7 +281,7 @@ const linkageOfficerController = (app, options, done) => {
         const result = await client.query(`
             SELECT u.dlsuid, u.lastname, u.firstname, u.middlename, u.linkageset
             FROM public.user u
-            WHERE u.roleid = 3
+            WHERE u.roleid IN (2, 3);
         `);
         client.release();
         return result.rows;
@@ -294,7 +294,7 @@ const linkageOfficerController = (app, options, done) => {
             FROM public.user u
             LEFT JOIN student_info s ON u.dlsuid = s.linkageofficerid
             LEFT JOIN lo_info l ON u.dlsuid = l.dlsuid
-            WHERE u.roleid = 3 AND u.linkageset = true
+            WHERE u.roleid IN (2, 3) AND u.linkageset = true
             GROUP BY u.dlsuid, u.lastname, u.firstname, u.middlename, u.linkageset, l.position, l.rank
         `);
         client.release();
@@ -307,7 +307,7 @@ const linkageOfficerController = (app, options, done) => {
             SELECT u.dlsuid, u.lastname, u.firstname, u.middlename, u.linkageset, l.position || ' ' || l.rank AS rank
             FROM public.user u
             LEFT JOIN lo_info l ON u.dlsuid = l.dlsuid
-            WHERE u.roleid = 3 AND u.linkageset = false
+            WHERE u.roleid IN (2, 3) AND u.linkageset = false
         `);
         client.release();
         return result.rows;
