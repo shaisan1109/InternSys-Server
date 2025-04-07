@@ -1,98 +1,4 @@
 const linkageOfficerController = (app, options, done) => {
-    // GET all unassigned students (students without a linkage officer in student_info)
-    app.get('/unassigned-students', async () => {
-        const client = await app.pg.connect();
-        const result = await client.query(`
-            SELECT u.dlsuid, u.lastname, u.firstname, u.middlename
-            FROM public.user u
-            LEFT JOIN public.student_info s ON u.dlsuid = s.studentid
-            WHERE u.roleid = 1 AND s.deployed = true
-            AND COALESCE(s.linkageofficerid, 0) = 0
-        `);
-        client.release();
-        return result.rows;
-    });    
-
-    // GET all assigned students (Students linked to a linkage officer via student_info table)
-    app.get('/assigned-students', async () => {
-        const client = await app.pg.connect();
-        const result = await client.query(`
-            SELECT u.dlsuid, u.firstname, u.lastname, s.linkageofficerid AS linkage_officer, sec.coursecode || ' - ' || sec.section AS section
-            FROM public.student_info s
-            JOIN public.user u ON u.dlsuid = s.studentid
-            LEFT JOIN public.sections sec ON s.currentsection = sec.sectionid
-            WHERE s.linkageofficerid IS NOT NULL AND s.deployed = true
-        `);
-        client.release();
-        return result.rows;
-    });
-
-    
-
-    // POST - Assign a student to a linkage officer (Update student_info table)
-    app.post('/assign-student', async (request, reply) => {
-        const { studentId, linkageOfficerId } = request.body;
-
-        if (!studentId || !linkageOfficerId) {
-            return reply.status(400).send({ error: "Missing studentId or linkageOfficerId" });
-        }
-
-        const client = await app.pg.connect();
-        try {
-            await client.query(`
-                UPDATE public.student_info 
-                SET linkageofficerid = $1
-                WHERE studentid = $2
-            `, [linkageOfficerId, studentId]);
-
-            reply.send({ message: "Student successfully assigned" });
-        } catch (error) {
-            reply.status(500).send({ error: error.message });
-        } finally {
-            client.release();
-        }
-    });
-
-    // DELETE - Unassign a student (Set linkageofficerid to NULL in student_info)
-    app.delete('/unassign-student/:studentId', async (request, reply) => {
-        const { studentId } = request.params;
-        const client = await app.pg.connect();
-        try {
-            await client.query(`
-                UPDATE public.student_info 
-                SET linkageofficerid = NULL
-                WHERE studentid = $1
-            `, [studentId]);
-
-            reply.send({ message: "Student unassigned successfully" });
-        } catch (error) {
-            reply.status(500).send({ error: error.message });
-        } finally {
-            client.release();
-        }
-    });
-
-    // ✅ GET all students assigned to a specific linkage officer
-    app.get('/assigned-students/:linkageOfficerId', async (request, reply) => {
-        const { linkageOfficerId } = request.params;
-
-        const client = await app.pg.connect();
-        try {
-            const result = await client.query(`
-                SELECT u.dlsuid, u.firstname, u.lastname, u.middlename, sec.coursecode || ' - ' || sec.section AS section, s.companyid 
-                FROM public.student_info s
-                JOIN public.user u ON u.dlsuid = s.studentid
-                LEFT JOIN public.sections sec ON s.currentsection = sec.sectionid
-                WHERE s.linkageofficerid = $1 AND s.deployed = true
-            `, [linkageOfficerId]);
-
-            reply.send(result.rows);
-        } catch (error) {
-            reply.status(500).send({ error: error.message });
-        } finally {
-            client.release();
-        }
-    });
 
     // CREATE an LO report 1
     app.post("/lo-report/create/:series", async (request) => {
@@ -275,13 +181,108 @@ const linkageOfficerController = (app, options, done) => {
 
     // manage linkage lab coord
 
+    // GET all unassigned students (students without a linkage officer in student_info)
+    app.get('/unassigned-students', async () => {
+        const client = await app.pg.connect();
+        const result = await client.query(`
+            SELECT u.dlsuid, u.lastname, u.firstname, u.middlename
+            FROM public.user u
+            LEFT JOIN public.student_info s ON u.dlsuid = s.studentid
+            WHERE u.roleid = 1 AND s.deployed = true
+            AND COALESCE(s.linkageofficerid, 0) = 0
+        `);
+        client.release();
+        return result.rows;
+    });    
+
+    // GET all assigned students (Students linked to a linkage officer via student_info table)
+    app.get('/assigned-students', async () => {
+        const client = await app.pg.connect();
+        const result = await client.query(`
+            SELECT u.dlsuid, u.firstname, u.lastname, s.linkageofficerid AS linkage_officer, sec.coursecode || ' - ' || sec.section AS section
+            FROM public.student_info s
+            JOIN public.user u ON u.dlsuid = s.studentid
+            LEFT JOIN public.sections sec ON s.currentsection = sec.sectionid
+            WHERE s.linkageofficerid IS NOT NULL AND s.deployed = true
+        `);
+        client.release();
+        return result.rows;
+    });
+
+    
+
+    // POST - Assign a student to a linkage officer (Update student_info table)
+    app.post('/assign-student', async (request, reply) => {
+        const { studentId, linkageOfficerId } = request.body;
+
+        if (!studentId || !linkageOfficerId) {
+            return reply.status(400).send({ error: "Missing studentId or linkageOfficerId" });
+        }
+
+        const client = await app.pg.connect();
+        try {
+            await client.query(`
+                UPDATE public.student_info 
+                SET linkageofficerid = $1
+                WHERE studentid = $2
+            `, [linkageOfficerId, studentId]);
+
+            reply.send({ message: "Student successfully assigned" });
+        } catch (error) {
+            reply.status(500).send({ error: error.message });
+        } finally {
+            client.release();
+        }
+    });
+
+    // DELETE - Unassign a student (Set linkageofficerid to NULL in student_info)
+    app.delete('/unassign-student/:studentId', async (request, reply) => {
+        const { studentId } = request.params;
+        const client = await app.pg.connect();
+        try {
+            await client.query(`
+                UPDATE public.student_info 
+                SET linkageofficerid = NULL
+                WHERE studentid = $1
+            `, [studentId]);
+
+            reply.send({ message: "Student unassigned successfully" });
+        } catch (error) {
+            reply.status(500).send({ error: error.message });
+        } finally {
+            client.release();
+        }
+    });
+
+    // ✅ GET all students assigned to a specific linkage officer
+    app.get('/assigned-students/:linkageOfficerId', async (request, reply) => {
+        const { linkageOfficerId } = request.params;
+
+        const client = await app.pg.connect();
+        try {
+            const result = await client.query(`
+                SELECT u.dlsuid, u.firstname, u.lastname, u.middlename, sec.coursecode || ' - ' || sec.section AS section, s.companyid 
+                FROM public.student_info s
+                JOIN public.user u ON u.dlsuid = s.studentid
+                LEFT JOIN public.sections sec ON s.currentsection = sec.sectionid
+                WHERE s.linkageofficerid = $1 AND s.deployed = true
+            `, [linkageOfficerId]);
+
+            reply.send(result.rows);
+        } catch (error) {
+            reply.status(500).send({ error: error.message });
+        } finally {
+            client.release();
+        }
+    });
+
     // GET all linkage officers
     app.get('/linkage-officers', async () => {
         const client = await app.pg.connect();
         const result = await client.query(`
             SELECT u.dlsuid, u.lastname, u.firstname, u.middlename, u.linkageset
             FROM public.user u
-            WHERE u.roleid IN (2, 3);
+            WHERE u.roleid IN (2, 3) AND u.is_active = true;
         `);
         client.release();
         return result.rows;
@@ -294,7 +295,7 @@ const linkageOfficerController = (app, options, done) => {
             FROM public.user u
             LEFT JOIN student_info s ON u.dlsuid = s.linkageofficerid
             LEFT JOIN lo_info l ON u.dlsuid = l.dlsuid
-            WHERE u.roleid IN (2, 3) AND u.linkageset = true
+            WHERE u.roleid IN (2, 3) AND u.linkageset = true AND u.is_active = true
             GROUP BY u.dlsuid, u.lastname, u.firstname, u.middlename, u.linkageset, l.position, l.rank
         `);
         client.release();
@@ -307,7 +308,7 @@ const linkageOfficerController = (app, options, done) => {
             SELECT u.dlsuid, u.lastname, u.firstname, u.middlename, u.linkageset, l.position || ' ' || l.rank AS rank
             FROM public.user u
             LEFT JOIN lo_info l ON u.dlsuid = l.dlsuid
-            WHERE u.roleid IN (2, 3) AND u.linkageset = false
+            WHERE u.roleid IN (2, 3) AND u.linkageset = false AND u.is_active = true
         `);
         client.release();
         return result.rows;

@@ -176,19 +176,21 @@ const userController = (app, options, done) => {
     });
 
 
-    // Update User Information
+   // Update User Information (For Admins only in manage users page)
     app.put('/update-user/:systemid', async (request, reply) => {
         const { systemid } = request.params;
         const { lastname, firstname, middlename, dlsuid, roleid, email, password, position, rank } = request.body;
-    
+        
+        let client;
+
         try {
-            if (!lastname || !firstname || !email) {
+            if (!lastname || !firstname) {
                 return reply.status(400).send({ error: "Missing required fields." });
             }
-    
-            const client = await app.pg.connect();
+
+            client = await app.pg.connect();
             await client.query('BEGIN'); // Start Transaction
-    
+
             // 🔹 Update user info
             let updateQuery = `
                 UPDATE public.user
@@ -196,7 +198,7 @@ const userController = (app, options, done) => {
                 WHERE systemid = $6 RETURNING *;
             `;
             let params = [lastname, firstname, middlename, dlsuid, roleid, systemid];
-    
+
             if (password) {
                 updateQuery = `
                     UPDATE public.user
@@ -205,14 +207,14 @@ const userController = (app, options, done) => {
                 `;
                 params = [lastname, firstname, middlename, dlsuid, roleid, password, systemid];
             }
-    
+
             const userResult = await client.query(updateQuery, params);
             if (userResult.rowCount === 0) {
-                return reply.status(404).send({ error: "User not found." });
+                return reply.status(404).send({ error: "User  not found." });
             }
-    
+
             // 🔹 If role is Linkage Officer, upsert `lo_info`
-            if (roleid === 3) {
+            if ([2, 3].includes(roleid)) {
                 const loUpsertQuery = `
                     INSERT INTO public.lo_info (dlsuid, position, rank)
                     VALUES ($1, $2, $3)
@@ -223,17 +225,189 @@ const userController = (app, options, done) => {
             }
 
             await client.query('COMMIT'); // Commit Transaction
-    
-            return reply.status(200).send({ message: "User updated successfully!" });
-    
+
+            return reply.status(200).send({ message: "User  updated successfully!" });
+
         } catch (error) {
             console.error('❌ Error updating user:', error);
-            await client.query('ROLLBACK'); // Rollback Transaction
+            if (client) {
+                await client.query('ROLLBACK'); // Rollback Transaction if client is defined
+            }
             return reply.status(500).send({ error: "Failed to update user." });
+        } finally {
+            if (client) {
+                client.release(); // Only release if client is defined
+            }
+        }
+    });
+
+    // update user information (for general users)
+    app.put('/update-profile/:dlsuid', async (request, reply) => {
+        const { dlsuid } = request.params;
+        const { lastname, firstname, middlename, roleid, position, rank } = request.body;
+        
+        let client;
+    
+        try {
+            if (!lastname || !firstname) {
+                return reply.status(400).send({ error: "Missing required fields." });
+            }
+    
+            client = await app.pg.connect();
+            await client.query('BEGIN'); // Start Transaction
+    
+            // Update basic user info
+            const updateQuery = `
+                UPDATE public.user
+                SET lastname = $1, firstname = $2, middlename = $3, roleid = $4
+                WHERE dlsuid = $5
+                RETURNING *;
+            `;
+            
+            const userResult = await client.query(updateQuery, 
+                [lastname, firstname, middlename, roleid, dlsuid]);
+            
+            if (userResult.rowCount === 0) {
+                return reply.status(404).send({ error: "User not found." });
+            }
+    
+            // Handle Linkage Officer/Practicum Coordinator info
+            if ([2, 3].includes(roleid)) {
+                if (!position || !rank) {
+                    return reply.status(400).send({ error: "Position and rank are required for this role." });
+                }
+    
+                const loUpsertQuery = `
+                    INSERT INTO public.lo_info (dlsuid, position, rank)
+                    VALUES ($1, $2, $3)
+                    ON CONFLICT (dlsuid) DO UPDATE
+                    SET position = EXCLUDED.position, rank = EXCLUDED.rank
+                    RETURNING *;
+                `;
+                await client.query(loUpsertQuery, [dlsuid, position, rank]);
+            } else {
+                // Remove LO info if role changed to non-LO
+                await client.query(`
+                    DELETE FROM public.lo_info 
+                    WHERE dlsuid = $1
+                `, [dlsuid]);
+            }
+    
+            await client.query('COMMIT'); // Commit Transaction
+    
+            // Return updated user data
+            const updatedUser = await client.query(`
+                SELECT u.*, ur.rolename, lo.position, lo.rank
+                FROM public.user u
+                LEFT JOIN public.lo_info lo ON u.dlsuid = lo.dlsuid
+                INNER JOIN public.user_roles ur ON u.roleid = ur.roleid
+                WHERE u.dlsuid = $1
+            `, [dlsuid]);
+    
+            return reply.status(200).send({ 
+                message: "Profile updated successfully!",
+                user: updatedUser.rows[0]
+            });
+    
+        } catch (error) {
+            console.error('❌ Error updating profile:', error);
+            if (client) await client.query('ROLLBACK');
+            return reply.status(500).send({ error: "Failed to update profile" });
+        } finally {
+            if (client) client.release();
+        }
+    });
+
+    // GET user details by DLSU ID
+    app.get('/user-details/:dlsuid', async (request, reply) => {
+        const { dlsuid } = request.params;
+        const client = await app.pg.connect();
+        
+        try {
+            const userResult = await client.query(`
+                SELECT u.systemid, u.dlsuid, u.email, u.lastname, u.firstname, u.middlename, 
+                    u.roleid, ur.rolename
+                FROM public.user u
+                INNER JOIN public.user_roles ur ON u.roleid = ur.roleid
+                WHERE u.dlsuid = $1
+            `, [dlsuid]);
+
+            if (userResult.rows.length === 0) {
+                return reply.status(404).send({ error: "User not found" });
+            }
+
+            const userData = userResult.rows[0];
+            client.release();
+            return userData;
+        } catch (error) {
+            console.error('Error fetching user details:', error);
+            client.release();
+            return reply.status(500).send({ error: "Failed to fetch user details" });
+        }
+    });
+
+    // GET linkage officer info by DLSU ID
+    app.get('/lo-info/:dlsuid', async (request, reply) => {
+        const { dlsuid } = request.params;
+        const client = await app.pg.connect();
+        
+        try {
+            const loResult = await client.query(`
+                SELECT position, rank 
+                FROM public.lo_info 
+                WHERE dlsuid = $1
+            `, [dlsuid]);
+
+            if (loResult.rows.length === 0) {
+                // Return default values if no record exists yet
+                return { position: '', rank: 1 };
+            }
+
+            client.release();
+            return loResult.rows[0];
+        } catch (error) {
+            console.error('Error fetching LO info:', error);
+            client.release();
+            return reply.status(500).send({ error: "Failed to fetch LO info" });
+        }
+    });
+
+
+    // Change Password
+    app.put('/change-password/:dlsuid', async (request, reply) => {
+        const { dlsuid } = request.params;
+        const { oldPassword, newPassword } = request.body;
+        
+        const client = await app.pg.connect();
+        try {
+            // 1. Verify old password
+            const checkQuery = `
+                SELECT dlsuid FROM public.user 
+                WHERE dlsuid = $1 AND password = crypt($2, password)
+            `;
+            const checkResult = await client.query(checkQuery, [dlsuid, oldPassword]);
+            
+            if (checkResult.rows.length === 0) {
+                return reply.status(401).send({ error: "Current password is incorrect" });
+            }
+
+            // 2. Update password
+            const updateQuery = `
+                UPDATE public.user
+                SET password = crypt($1, gen_salt('bf'))
+                WHERE dlsuid = $2
+                RETURNING dlsuid
+            `;
+            await client.query(updateQuery, [newPassword, dlsuid]);
+
+            return reply.send({ message: "Password updated successfully" });
+        } catch (error) {
+            console.error('Error changing password:', error);
+            return reply.status(500).send({ error: "Failed to change password" });
         } finally {
             client.release();
         }
-    });    
+    });
 
       
     done();
